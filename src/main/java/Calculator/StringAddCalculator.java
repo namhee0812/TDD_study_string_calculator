@@ -27,4 +27,14 @@ public class StringAddCalculator {
         String[] tokens= text.split(",|:");
         return 0;
     }
+
+    public static int sumSplitTokens(String[] tokens)
+    {
+        int result = 0;
+        for(int i=0;i<tokens.length;i++) {
+            result += Integer.parseInt(tokens[i]);
+        }
+        return result;
+    }
+
 }
