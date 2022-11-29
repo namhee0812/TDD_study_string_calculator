@@ -4,69 +4,67 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringAddCalculator {
-
-    public static final int ERROR_PARSE_INT = 1;
-    public static final int ERROR_NEGATIVE_NUM = 2;
-
+    private static final Pattern pattern = Pattern.compile("//(.)\n(.*)");
+    private static final int customDelimiterPos = 1;
+    private static final int textToSplitPos = 2;
+    private static final String defaultValidator01 = ",";
+    private static final String defaultValidator02 = ":";
+    private static final String defaultValidatorString = "[" + defaultValidator01 + defaultValidator02 +"]";
 
     public static int splitAndSum(String text) {
-        if (text == null || text == "") {
+        if (isBlankString(text))
             return 0;
-        }
-        Integer result = stringSplitValidator(text);
-        if(result == 0) {
-            result = Integer.parseInt(text);
-        }
-        return result;
+        return stringSplitValidator(text);
     }
-
-    public static Integer stringSplitValidator(String text)
+    private static boolean isBlankString(String text){
+        return text == null || text.equals("");
+    }
+    private static Integer stringSplitValidator(String text)
     {
-        Matcher m = Pattern.compile("//(.)\n(.*)").matcher(text);
+        if(isStringInteger(text))
+            return  Integer.parseInt(text);
+        Matcher m = pattern.matcher(text);
         if (m.find()) {
-            String customDelimiter = m.group(1);
-            String[] tokens= m.group(2).split(customDelimiter);
+            String customDelimiter = m.group(customDelimiterPos);
+            String[] tokens= m.group(textToSplitPos).split(customDelimiter);
             return sumSplitTokens(tokens);
         }
-        String[] tokens= text.split(",|:");
+        isStringDefaultValidator(text);
+        String[] tokens= text.split(defaultValidatorString);
         return sumSplitTokens(tokens);
     }
 
-    public static int sumSplitTokens(String[] tokens)
+    private static int sumSplitTokens(String[] tokens)
     {
         int result = 0;
-        for(int i=0;i<tokens.length;i++) {
-            result += isValidateToken(tokens[i]);
+        for (String token : tokens) {
+            if(!isStringInteger(token))
+                throw new RuntimeException("ParseInt(token) Failed");
+            result += Integer.parseInt(token);
         }
         return result;
     }
-
-    public static int isValidateToken(String token) throws RuntimeException
+    private static void isStringDefaultValidator(String text){
+        if(text.equals(defaultValidator01)){
+            throw new RuntimeException("Parse Failed");
+        }
+        if(text.equals(defaultValidator02)){
+            throw new RuntimeException("Parse Failed");
+        }
+    }
+    private static boolean isStringInteger(String token)
     {
-        Integer result =0 ;
+        int result =0;
         try {
-            result  = Integer.parseInt(token);
+           result = Integer.parseInt(token);
         }
         catch(Exception e) {
-            throw ErrorHandler(ERROR_PARSE_INT);
+            return false;
         }
-        if(result <0) {
-            throw ErrorHandler(ERROR_NEGATIVE_NUM);
+        if(result < 0) {
+            return false;
         }
-        return result;
-    }
-
-    public static RuntimeException ErrorHandler(int error) throws RuntimeException{
-        if(error == ERROR_PARSE_INT){
-            RuntimeException parseIntError = new RuntimeException("ParseInt(token) Failed");
-            throw parseIntError;
-        }
-        if(error == ERROR_NEGATIVE_NUM){
-            RuntimeException negativeNumError = new RuntimeException("Negative Number Found");
-            throw negativeNumError;
-        }
-        RuntimeException unknownError = new RuntimeException("Unknown Error");
-        throw unknownError;
+        return true;
     }
 
 }
